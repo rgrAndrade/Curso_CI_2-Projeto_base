@@ -9,35 +9,59 @@ on:
 jobs:
 
   test:
+    # Aumentando o timeout para dar mais tempo para o Docker construir e subir os serviços.
+    timeout-minutes: 10 
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: ['1.22'] # Versão recente do Go
+        # Removendo a matriz (matrix) para go-version, pois ela não é necessária para um único valor ('1.22')
+        # e simplifica o job. Se precisar testar várias versões, reative.
+        # go-version: ['1.22'] 
     steps:
-    - uses: actions/checkout@v3
-
+    - uses: actions/checkout@v4 # 🔄 ATUALIZADO: Usando a versão mais recente para o checkout
+    
     - name: Set up Go
-      uses: actions/setup-go@v3
+      # 🔄 ATUALIZADO: Usando a versão mais recente da action setup-go
+      uses: actions/setup-go@v5 
       with:
-        go-version: ${{ matrix.go_version }}
-      
-    - name: Build-DB
-      run: docker-compose build
-      
-    - name: Create-DB
-      run: docker-compose up -d
+        # Versão fixa, simplificando o uso da 'matrix'
+        go-version: '1.22' 
+        
+    # 🆕 NOVO PASSO: Configuração obrigatória para garantir que o Docker e docker-compose funcionem
+    - name: Setup Docker Buildx and Compose
+      uses: docker/setup-buildx-action@v3
+
+    # 🔧 MUDANÇA: Substituindo docker-compose por 'docker compose' (sem hífen)
+    # Este é o comando padrão para o plugin Compose nos runners modernos do GitHub.
+    - name: Build DB containers
+      run: docker compose build # 🚀 CORREÇÃO: Usando 'docker compose'
+
+    - name: Start DB services
+      run: docker compose up -d # 🚀 CORREÇÃO: Usando 'docker compose'
 
     - name: Test
+      # Adicione um pequeno delay (sleep) aqui, se os testes falharem ocasionalmente.
+      # Isso dá tempo para o banco de dados inicializar completamente.
       run: go test -v main_test.go 
       
-  
+  # ---
+  # Se o seu build realmente precisa ser executado em versões diferentes do Ubuntu, 
+  # mantenha a matriz. Caso contrário, simplifique.
   build:
     needs: test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ['ubuntu-latest', 'ubuntu-18.04']
+        # A versão 'ubuntu-18.04' está obsoleta e sem suporte. 
+        # 🗑️ REMOVIDO: Versão 18.04. Mantenha apenas o 'ubuntu-latest'.
+        os: ['ubuntu-latest']
     steps:
-    - uses: actions/checkout@v3
-    - name: Build
+    - uses: actions/checkout@v4 # 🔄 ATUALIZADO: Usando a versão mais recente para o checkout
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+
+    - name: Build Go application
       run: go build -v main.go
