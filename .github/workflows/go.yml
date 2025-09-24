@@ -65,7 +65,7 @@ jobs:
 
 
     - name: Upload a Build Artifact
-      uses: aactions/upload-artifact@v4
+      uses: actions/upload-artifact@v4
       with:
         # Artifact name
         name: programa
