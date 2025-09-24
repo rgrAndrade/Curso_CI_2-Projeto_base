@@ -12,6 +12,12 @@ jobs:
     # Aumentando o timeout
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    env:
+      HOST: localhost
+      PORT: 5432
+      USER: root
+      PASSWORD: root
+      DBNAME: root
     
     # Removida a matriz vazia (matrix) para evitar confusão de indentação
     # strategy:
